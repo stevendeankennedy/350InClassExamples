@@ -3,14 +3,64 @@
 INCLUDE Irvine32.inc
 .data
 
-	list DWORD 5, 1, 6, 4, 3, 7
+	;list DWORD 5, 1, 6, 4, 3, 7
+	list DWORD 1, 2, 3, 4, 5, 7
 
 .code
 main PROC
 
 	; call the bubba proc
-
+	;call bubba
+	call bogo
+	exit
 main ENDP
+
+; BOGO sort procedure
+; Pre: Have a list
+; Post: List is sorted
+; 1) randomize
+; 2) repeat, unless it is sorted
+bogo PROC
+	
+	mov ecx, LENGTHOF list
+;L_AfterSortCheck:
+
+	;; while list is unsorted, loop
+L_Top:
+	; 1) randomize
+	call randomize
+	mov eax, LENGTHOF list ; first index
+	call randomRange
+	mov esi, eax ; first index in esi
+	mov eax, LENGTHOF list
+	call randomRange
+	mov edi, eax; second index
+	mov eax, list[esi]
+	mov ebx, list[edi]
+	xchg esi, edi
+	mov list[esi], eax
+	mov list[edi], ebx
+	loop L_Top
+	mov ecx, LENGTHOF list
+	
+	mov esi, 0
+L_Inner: ; 2) check to see if it is sorted
+	mov eax, list[esi * TYPE list]
+	inc esi
+	mov ebx, list[esi * TYPE list]
+	cmp eax, ebx
+	; if not sorted, we are done
+	jnb L_Top
+	; otherwise, keep going, through the end of the list
+	loop L_Inner
+	; need a way out
+	jmp L_END
+;	jmp L_Top
+	
+L_END:
+	; it is sorted!
+	ret
+bogo ENDP
 
 ; Bubble sort procedure
 bubba PROC
