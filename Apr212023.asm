@@ -17,11 +17,11 @@ bubba PROC
 
 	mov ecx, LENGTHOF list
 	dec ecx 	; There are actually n-1 bubbles
-	mov esi, OFFSET list
 	
 	;; make your two loops
 L1:
-
+	mov esi, OFFSET list
+	
 	push ecx 	; we have to manage two counters some how
 	mov ecx, LENGTHOF list
 	dec ecx 	; it is too long, so subtract 1
@@ -44,7 +44,7 @@ L1:
 		loop L1
 
 
-		
+		; just prints it out
 		mov ecx, LENGTHOF list
 		mov esi, 0
 		L3: 
