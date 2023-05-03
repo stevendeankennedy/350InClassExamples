@@ -12,7 +12,8 @@ ENDM
 
 mOption MACRO theNum
 	cmp eax, theNum
-	je LOPT&theNum
+	echo theNum
+	je LOPT_&theNum
 ENDM
 
 .data
@@ -26,13 +27,48 @@ ENDM
 	prompt2 BYTE ">",0
 	errMsg BYTE "Invalid Input",0
 	tstMsg BYTE "TEST",0
+	
+	someNums DWORD 15h, 14h, 3h, 2h, 1h, 7h, 8h, 1h
 
 .code
 main PROC
 	
-	call runLogic
+	;call runLogic
+	call runLargest
 	exit
 main ENDP
+
+runLargest PROC
+	push ebp
+	mov ebp, esp
+	sub esp, 4 ; largestSoFar
+	
+	;mov DWORD PTR [esp-4], 0 ; init local var
+	
+	; go one by one, putting elements into eax, jumping if they are not larger...
+	mov ecx, LENGTHOF someNums - 1
+	mov eax, someNums[ecx * TYPE someNums]
+
+L_Loop:
+	cmp eax, someNums[ecx * TYPE someNums]
+	jge L_Step2
+	mov eax, someNums[ecx * TYPE someNums]
+	
+L_Step2:
+	loop L_Loop
+	
+	cmp eax, someNums[ecx * TYPE someNums]
+	jge L_Step3
+	mov eax, someNums[ecx * TYPE someNums]
+
+L_Step3:
+
+	;mov .., [esp-4] ; largestSoFar
+	
+	mov esp, ebp
+	pop ebp
+	ret
+runLargest ENDP
 
 ; display the prompt, we'll use the macro for this
 ; display menu
@@ -52,21 +88,36 @@ L_MainLoop:
 	mPrintLn errMsg
 	jmp L_MainLoop
 L_VALID:
-	; TODO: more options	
+	; TODO: more options
+	mov edx, eax
 	mPrintln prompt2
 	call ReadHex ; puts input in eax
 	push eax ; Y
 	mPrintln prompt2
 	call ReadHex
 	push eax ; X
+	mov eax, edx
 
 	mOption 1
-;	mOption 2
-;	mOption 3
-;	mOption 4
-LOPT1:
+	mOption 2
+	mOption 3
+	mOption 4
+	mOption 5
+LOPT_1:
 	call runAND
-
+	jmp L_MainLoop
+LOPT_2:
+	call runOR
+	jmp L_MainLoop
+LOPT_3:
+	call runNOT
+	jmp L_MainLoop
+LOPT_4:
+	call runXOR
+	jmp L_MainLoop
+LOPT_5:
+	; nothing... all done
+LALLDONE:
 	ret
 runLogic ENDP
 
@@ -86,5 +137,57 @@ runAND PROC
 	pop ebp
 	ret 8 ; dealloc x and y off of the stack (reminder, this is STDCALL mode)
 runAND ENDP
+
+; do x OR y
+; pre: x and y are pushed (in that order)
+; post: eax contains result: x OR y
+runOR PROC
+	push ebp
+	mov ebp, esp
+	
+	mov eax, DWORD PTR [esp+8]  ; X
+	mov ebx, DWORD PTR [esp+12] ; Y
+	
+	or eax, ebx
+	
+	mov esp, ebp
+	pop ebp
+	ret 8 ; dealloc x and y off of the stack (reminder, this is STDCALL mode)
+runOR ENDP
+
+; TODO: Actually properly debug this.
+; do NOT y
+; pre: x and y are pushed (in that order)
+; post: eax contains result: x OR y
+runNOT PROC
+	push ebp
+	mov ebp, esp
+	
+	mov eax, DWORD PTR [esp+8]  ; X
+	mov ebx, DWORD PTR [esp+12] ; Y
+	
+	not eax
+	
+	mov esp, ebp
+	pop ebp
+	ret 8 ; dealloc x and y off of the stack (reminder, this is STDCALL mode)
+runNOT ENDP
+
+; do x OR y
+; pre: x and y are pushed (in that order)
+; post: eax contains result: x OR y
+runXOR PROC
+	push ebp
+	mov ebp, esp
+	
+	mov eax, DWORD PTR [esp+8]  ; X
+	mov ebx, DWORD PTR [esp+12] ; Y
+	
+	xor eax, ebx
+	
+	mov esp, ebp
+	pop ebp
+	ret 8 ; dealloc x and y off of the stack (reminder, this is STDCALL mode)
+runXOR ENDP
 
 END main
